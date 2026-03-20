@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3d-gaussian-splatting</title>
+    <style>
+      html, body {
+        margin: 0; padding: 0; border: 0;
+        font-size: 100%; font: inherit; vertical-align: baseline;
+        background: #c46363; width: 100%; height: 100%;
+        overflow: hidden;  /* NEW: prevent scroll */
+      }
+      #container {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 20px; gap: 10px;
+        width: 100vw; height: 100vh;
+      }
+      #gfxCanvas {
+        width: 800px; height: 800px;  /* NEW: explicit size */
+        border: 2px solid #fff;
+        cursor: grab;  /* NEW: grab cursor */
+        pointer-events: auto;  /* NEW: ensure events */
+        background: #000;
+      }
+      #gfxCanvas:active { cursor: grabbing; }
+      #render-time { color: cyan; font-weight: bold; }
+      input[type=number] { 
+        width: 80px; margin: 0 5px; 
+        background: #333; color: white; border: 1px solid #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div>WASD/EQ: Move | Drag: Rotate</div>
+      <canvas id="gfxCanvas" width="800" height="800">
+        Your browser does not support the HTML5 canvas.
+      </canvas>
+      <div>Render Time: <span id="render-time">--</span> ms</div>
+      <div>
+        <span>Light: </span>
+        <input type="number" id="lightX" value="11">
+        <input type="number" id="lightY" value="-15"> 
+        <input type="number" id="lightZ" value="-12">
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+
