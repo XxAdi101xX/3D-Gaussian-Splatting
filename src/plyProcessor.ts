@@ -1,5 +1,5 @@
 import { vec3, vec4, type Vec3, type Vec4 } from "wgpu-matrix";
-import type { GaussianSplat } from "./gaussianSplat";
+import { GaussianSplat } from "./gaussianSplat";
 
 export class PlyProcessor {
     /* Variables */
@@ -20,6 +20,8 @@ export class PlyProcessor {
         float32: { size: 4, read: (dv, o, le) => dv.getFloat32(o, le) },
         float64: { size: 8, read: (dv, o, le) => dv.getFloat64(o, le) },
         double:  { size: 8, read: (dv, o, le) => dv.getFloat64(o, le) },
+        char:    { size: 1, read: (dv, o)     => dv.getInt8(o) },   // endian irrelevant for 1-byte types
+        uchar:   { size: 1, read: (dv, o)     => dv.getUint8(o) },  // endian irrelevant for 1-byte types
         int8:    { size: 1, read: (dv, o)     => dv.getInt8(o) }, // endian irrelevant for 1-byte types
         uint8:   { size: 1, read: (dv, o)     => dv.getUint8(o) }, // endian irrelevant for 1-byte types
         int16:   { size: 2, read: (dv, o, le) => dv.getInt16(o, le) },
@@ -64,7 +66,7 @@ export class PlyProcessor {
         return this.gaussianSplats;
     }
 
-    async parsePlyFilePopulateGaussianSplats(file: File) {
+    async parsePlyFileAndPopulateGaussianSplats(file: File) {
         const buffer = await file.arrayBuffer();
         const bytes = new Uint8Array(buffer);
 
@@ -118,6 +120,16 @@ export class PlyProcessor {
             headerLineIndex++;
         }
 
+        // Validate that all required properties are present
+        const requiredProps = ['x', 'y', 'z', 'rot_0', 'rot_1', 'rot_2', 'rot_3', 'scale_0', 'scale_1', 'scale_2', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity'];
+        const propNames = this.properties.map(p => p.name);
+
+        for (const prop of requiredProps) {
+            if (!propNames.includes(prop)) {
+                throw new Error(`Invalid PLY file: Missing required property '${prop}'`);
+            }
+        }
+
         // Parse splats
         if (this.format === PlyProcessor.PLY_FORMAT.BinaryLittleEndian || this.format === PlyProcessor.PLY_FORMAT.BinaryBigEndian) {
             const littleEndian = this.format === PlyProcessor.PLY_FORMAT.BinaryLittleEndian;
@@ -150,30 +162,30 @@ export class PlyProcessor {
 
         let base = this.headerLength;
         for (let v = 0; v < this.splatCount; v++, base += stride) {
-            splats[v] = {
-                position: vec3.create(
+            splats[v] = new GaussianSplat(
+                vec3.create(
                     get(base, 'x'),
                     get(base, 'y'),
                     get(base, 'z')
                 ),
-                rotation: vec4.create(
+                vec4.create(
                     get(base, 'rot_0'),
                     get(base, 'rot_1'),
                     get(base, 'rot_2'),
                     get(base, 'rot_3')
                 ),
-                scale: vec3.create(
+                vec3.create(
                     Math.exp(get(base, 'scale_0')),
                     Math.exp(get(base, 'scale_1')),
                     Math.exp(get(base, 'scale_2'))
                 ),
-                color: vec3.create(
+                vec3.create(
                     0.5 + PlyProcessor.SH_C0 * get(base, 'f_dc_0'),
                     0.5 + PlyProcessor.SH_C0 * get(base, 'f_dc_1'),
                     0.5 + PlyProcessor.SH_C0 * get(base, 'f_dc_2')
                 ),
-                opacity:  1.0 / (1.0 + Math.exp(-get(base, 'opacity')))
-            };
+                1.0 / (1.0 + Math.exp(-get(base, 'opacity')))
+            );
         }
 
         return splats;

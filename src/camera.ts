@@ -42,8 +42,25 @@ export class Camera {
         vec3.addScaled(this.position, this.up, dz, this.position);
     }
 
+    /**
+     * Computes the camera matrix which positions an object aiming down positive Z. toward the target.
+     * Note: this is NOT the inverse of lookAt as lookAt looks at negative Z, whereas this looks at positive Z.
+     * @returns The camera's matrix, which can be used to position objects in the scene relative to the camera's orientation and position.
+     */
+    getCameraMatrix(): Mat4 {
+        const target = vec3.add(this.position, this.forward);
+        // lookAt provides the view matrix.
+        return mat4.aim(this.position, target, this.up);
+    }
+
+    /**
+     * Computes the view matrix which transforms world coordinates into the camera's view space.
+     * Note: this is NOT the inverse of the camera matrix, which looks at positive Z, whereas this looks at negative Z.
+     * @returns The view matrix, which can be used to transform world coordinates into the camera's view space for rendering.
+     */
     getViewMatrix(): Mat4 {
         const target = vec3.add(this.position, this.forward);
+        // lookAt provides the view matrix.
         return mat4.lookAt(this.position, target, this.up);
     }
 

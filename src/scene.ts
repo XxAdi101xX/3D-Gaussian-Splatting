@@ -59,7 +59,7 @@ export class Scene {
         });
 
         document.addEventListener("keydown", (e) => {
-            const speed = 0.05;
+            const speed = 0.25;
             switch (e.code) {
                 case "KeyW": this.camera.pan(speed, 0, 0); break;
                 case "KeyS": this.camera.pan(-speed, 0, 0); break;

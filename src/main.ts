@@ -1,5 +1,5 @@
 import { Scene } from "./scene";
-import SplatRenderer from "./splatRenderer";
+import Renderer from "./renderer";
 
 const bootstrap = async (): Promise<void> => {
     const canvas = document.getElementById("gfxCanvas") as HTMLCanvasElement | null;
@@ -7,10 +7,10 @@ const bootstrap = async (): Promise<void> => {
         throw new Error("Canvas element 'gfxCanvas' not found");
     }
 
-    canvas.width = canvas.height = 800;
+    canvas.width = canvas.height = 1200;
 
     const scene = new Scene();
-    const renderer = new SplatRenderer(canvas, scene);
+    const renderer = new Renderer(canvas, scene);
 
     try {
         await renderer.start();
